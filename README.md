@@ -178,4 +178,4 @@ This provides an interactive interface to:
 
 ## Difficulties
 
-It was hard to find the right database to implement ORM on the database using sequiloze. I had to reconfigure the Firebase as it wasn't compatbile for the method which was quite complicated. Sequiler took quite a while but Swagger was a little bit more simpler. It was hard also when we wanted to check if everything was right or not.
+It was hard to find the right database to implement ORM on the database using sequiloze. I had to reconfigure the Firebase as it wasn't compatbile for the method which was quite complicated. Sequiler took quite a while but Swagger was a little bit more simpler. It was hard also when I wanted to check if everything was right or not.
