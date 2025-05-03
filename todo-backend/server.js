@@ -18,7 +18,10 @@ const { sequelize } = require('./models');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Your frontend URL
+  credentials: true // If you need to send cookies
+}));
 app.use(express.json());
 
 // Swagger configuration
