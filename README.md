@@ -2,72 +2,8 @@
 
 A RESTful API for managing todo lists, built with Express.js and Sequelize ORM.
 
-## Table of Contents
-
-- [Features](#features)
-- [Technologies](#technologies)
-- [Setup](#setup)
 - [API Design](#api-design)
-- [API Documentation](#api-documentation)
-
-## Features
-
-- User Authentication (Register, Login)
-- JWT-based Authentication
-- CRUD operations for Todo items
-- API Documentation with Swagger
-
-## Technologies
-
-- **Backend**: Node.js, Express.js
-- **Database ORM**: Sequelize
-- **Database**: MySQL (can be configured to use PostgreSQL or SQLite)
-- **Authentication**: JWT (JSON Web Tokens)
-- **API Documentation**: Swagger UI
-- **Security**: bcrypt for password hashing
-
-## Setup
-
-### Prerequisites
-
-- Node.js (v14+)
-- MySQL (or your preferred database)
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd todo-backend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a `.env` file in the root directory with the following variables:
-```
-PORT=5000
-DB_NAME=todo_db
-DB_USER=root
-DB_PASSWORD=yourpassword
-DB_HOST=localhost
-JWT_SECRET=your_jwt_secret_key
-```
-
-4. Create the database:
-```sql
-CREATE DATABASE todo_db;
-```
-
-5. Start the server:
-```bash
-npm start
-```
-
-6. The server will run on `http://localhost:5000`
-7. Access Swagger documentation at `http://localhost:5000/api-docs`
+- [Diffuculties](#difficulties)
 
 ## API Design
 
@@ -239,3 +175,7 @@ This provides an interactive interface to:
 - View all available endpoints
 - Read detailed documentation about each endpoint
 - Make test requests directly from the browser
+
+## Difficulties
+
+It was hard to find the right database to implement ORM on the database using sequiloze. I had to reconfigure the Firebase as it wasn't compatbile for the method which was quite complicated. Sequiler took quite a while but Swagger was a little bit more simpler. It was hard also when I wanted to check if everything was right or not.
