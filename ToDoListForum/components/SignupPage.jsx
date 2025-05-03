@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../src/firebase';
 import { Link, useNavigate } from 'react-router-dom';
+import { authService } from '../src/services/api';
 
 export const Signup = () => {
     const [name, setName] = useState('');
@@ -31,27 +29,12 @@ export const Signup = () => {
         setLoading(true);
         
         try {
-            // Create user in Firebase Authentication
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-            
-            // Update user profile with display name
-            await updateProfile(user, {
-                displayName: name
-            });
-            
-            // Create user document in Firestore
-            await setDoc(doc(db, 'users', user.uid), {
-                name,
-                email,
-                createdAt: new Date()
-            });
-            
+            await authService.register(name, email, password);
             navigate('/');
         } catch (error) {
             console.error("Error creating account: ", error);
             
-            if (error.code === 'auth/email-already-in-use') {
+            if (error.message === 'User already exists') {
                 setError('Email is already in use');
             } else {
                 setError('Failed to create account. Please try again.');

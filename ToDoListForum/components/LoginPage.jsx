@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../src/firebase';
 import { Link, useNavigate } from 'react-router-dom';
-// Optional: If you want a real eye icon for password toggle
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { authService } from '../src/services/api';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -20,12 +18,12 @@ export const Login = () => {
     setLoading(true);
     
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await authService.login(email, password);
       navigate('/');
     } catch (error) {
       console.error("Error signing in: ", error);
       setError(
-        error.code === 'auth/invalid-credential' 
+        error.message === 'Invalid credentials' 
           ? 'Invalid email or password' 
           : 'Failed to sign in. Please try again.'
       );

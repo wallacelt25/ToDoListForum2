@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db, storage } from '../src/firebase';
-import { updateProfile } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { authService, getCurrentUser } from '../src/services/api';
 
 export const Account = () => {
     const [user, setUser] = useState(null);
@@ -16,28 +13,35 @@ export const Account = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
-            if (currentUser) {
+        const fetchUserData = async () => {
+            try {
+                // Get current user from local storage
+                const currentUser = getCurrentUser();
+                
+                if (!currentUser) {
+                    navigate('/login');
+                    return;
+                }
+                
                 setUser(currentUser);
-                setName(currentUser.displayName || '');
+                setName(currentUser.name || '');
                 setPhotoURL(currentUser.photoURL || '');
                 
-                // Get additional user data from Firestore
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        // You can set additional user data here if needed
-                    }
-                } catch (error) {
-                    console.error("Error fetching user data: ", error);
+                // Fetch fresh user data from API
+                const userData = await authService.getProfile();
+                
+                if (userData) {
+                    setUser(userData);
+                    setName(userData.name || '');
+                    setPhotoURL(userData.photoURL || '');
                 }
-            } else {
-                navigate('/login');
+            } catch (error) {
+                console.error("Error fetching user data: ", error);
+                setError('Failed to load user data');
             }
-        });
+        };
         
-        return () => unsubscribe();
+        fetchUserData();
     }, [navigate]);
 
     const handlePhotoChange = (e) => {
@@ -58,28 +62,16 @@ export const Account = () => {
                 return;
             }
             
-            // Update profile picture if a new one is selected
-            let updatedPhotoURL = photoURL;
-            if (profilePic) {
-                const storageRef = ref(storage, `profile-pics/${user.uid}`);
-                await uploadBytes(storageRef, profilePic);
-                updatedPhotoURL = await getDownloadURL(storageRef);
-            }
+            // For simplicity, we're not handling file uploads in this example
+            // In a real application, you would upload the file to your server or a cloud storage service
+            // and then update the user profile with the photo URL
             
-            // Update user profile in Authentication
-            await updateProfile(user, {
-                displayName: name,
-                photoURL: updatedPhotoURL
-            });
-            
-            // Update user document in Firestore
-            await updateDoc(doc(db, 'users', user.uid), {
+            // Update user profile
+            await authService.updateProfile({
                 name,
-                photoURL: updatedPhotoURL,
-                updatedAt: new Date()
+                photoURL: photoURL, // In a real app, this would be the URL returned from file upload
             });
             
-            setPhotoURL(updatedPhotoURL);
             setSuccess('Profile updated successfully!');
         } catch (error) {
             console.error("Error updating profile: ", error);
@@ -87,6 +79,11 @@ export const Account = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleLogout = () => {
+        authService.logout();
+        navigate('/login');
     };
 
     return (
@@ -141,6 +138,9 @@ export const Account = () => {
                                         className="hidden"
                                     />
                                 </label>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    (Note: Image upload functionality would require additional backend setup)
+                                </p>
                             </div>
                             
                             <div className="mb-4">
@@ -170,15 +170,25 @@ export const Account = () => {
                                 <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                             </div>
                             
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className={`w-full px-4 py-2 text-white font-semibold rounded ${
-                                    loading ? 'bg-blue-400' : 'bg-blue-500 hover:bg-blue-600'
-                                } transition`}
-                            >
-                                {loading ? 'Updating...' : 'Update Profile'}
-                            </button>
+                            <div className="flex flex-col space-y-3">
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className={`w-full px-4 py-2 text-white font-semibold rounded ${
+                                        loading ? 'bg-blue-400' : 'bg-blue-500 hover:bg-blue-600'
+                                    } transition`}
+                                >
+                                    {loading ? 'Updating...' : 'Update Profile'}
+                                </button>
+                                
+                                <button
+                                    type="button"
+                                    onClick={handleLogout}
+                                    className="w-full px-4 py-2 text-white font-semibold rounded bg-red-500 hover:bg-red-600 transition"
+                                >
+                                    Logout
+                                </button>
+                            </div>
                         </form>
                     )}
                 </div>

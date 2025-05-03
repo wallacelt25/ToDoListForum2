@@ -3,18 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Todo } from './Todo.jsx';
 import { TodoForm } from './TodoForm.jsx';
 import { EditTodoForm } from './EditTodoForm.jsx';
-import { signOut } from 'firebase/auth';
-import { auth, db } from '../src/firebase';
-import { 
-    collection, 
-    query, 
-    onSnapshot, 
-    addDoc, 
-    doc, 
-    updateDoc, 
-    deleteDoc, 
-    serverTimestamp 
-} from 'firebase/firestore';
+import { todoService, authService, getCurrentUser } from '../src/services/api';
 
 export const TodoWrapper = () => {
     const [todos, setTodos] = useState([]);
@@ -25,7 +14,7 @@ export const TodoWrapper = () => {
 
     // Check authentication and fetch todos
     useEffect(() => {
-        const user = auth.currentUser;
+        const user = getCurrentUser();
         if (!user) {
             navigate('/login');
             return;
@@ -123,12 +112,8 @@ export const TodoWrapper = () => {
         : todos;
 
     const handleLogout = async () => {
-        try {
-            await signOut(auth);
-            navigate('/login');
-        } catch (error) {
-            console.error("Error signing out: ", error);
-        }
+        authService.logout();
+        navigate('/login');
     };
 
     return (

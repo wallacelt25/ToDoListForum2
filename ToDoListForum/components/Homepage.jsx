@@ -1,20 +1,40 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../src/firebase';
+import { authService, getCurrentUser } from '../src/services/api';
 
 export const HomePage = () => {
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         // Check if user is authenticated
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (!user) {
-                navigate('/login');
-            }
-        });
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+            navigate('/login');
+            return;
+        }
         
-        return () => unsubscribe();
+        setUser(currentUser);
+        
+        // Optionally fetch fresh user data
+        const fetchUserData = async () => {
+            try {
+                const userData = await authService.getProfile();
+                if (userData) {
+                    setUser(userData);
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        };
+        
+        fetchUserData();
     }, [navigate]);
+
+    const handleLogout = () => {
+        authService.logout();
+        navigate('/login');
+    };
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -22,6 +42,7 @@ export const HomePage = () => {
                 <div className="text-center mb-12">
                     <h1 className="text-4xl font-bold text-gray-800 mb-4">Welcome to Your Task Manager</h1>
                     <p className="text-xl text-gray-600">Organize your life, one task at a time.</p>
+                    {user && <p className="mt-2 text-gray-600">Hello, {user.name}!</p>}
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -55,9 +76,15 @@ export const HomePage = () => {
                 <div className="mt-8 text-center">
                     <button 
                         onClick={() => navigate('/todos')} 
-                        className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+                        className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition mr-4"
                     >
                         Get Started
+                    </button>
+                    <button 
+                        onClick={handleLogout} 
+                        className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+                    >
+                        Logout
                     </button>
                 </div>
             </div>

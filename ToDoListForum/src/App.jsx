@@ -1,35 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from '../components/Homepage';
 import { TodoWrapper } from '../components/TodoWrapper';
 import { Login } from '../components/LoginPage';
 import { Signup } from '../components/SignupPage';
 import { Account } from '../components/AccountPage';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
+import { isAuthenticated, getCurrentUser } from './services/api';
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
 
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
+  useEffect(() => {
+    // Check if user is authenticated
+    const auth = isAuthenticated();
+    setAuthenticated(auth);
+    setCheckingAuth(false);
   }, []);
 
-  if (isLoading) {
+  if (checkingAuth) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return authenticated ? children : <Navigate to="/login" />;
 };
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Get user from local storage
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
   return (
     <Router>
       <div className="container mx-auto px-4">
